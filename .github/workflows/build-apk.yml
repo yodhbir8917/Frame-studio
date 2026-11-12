@@ -1,3 +1,4 @@
+
 name: Build Frame Studio APK
 
 on:
@@ -8,11 +9,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Find and extract project ZIP
+      - name: Extract project ZIP
         run: |
           ZIP_FILE=$(find . -maxdepth 1 -iname "*.zip" | head -n 1)
           if [ -z "$ZIP_FILE" ]; then
@@ -29,9 +31,15 @@ jobs:
           java-version: '21'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        run: |
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses
+          sdkmanager --sdk_root="$ANDROID_HOME" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
-      - name: Install Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14.3'
@@ -45,4 +53,3 @@ jobs:
         with:
           name: FrameStudio-APK
           path: extracted/Frame-main/app/build/outputs/apk/debug/*.apk
-          
